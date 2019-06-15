@@ -5,7 +5,7 @@ import getopt
 import shodanapi
 import os
 
-version = '1.0'
+version = '1.1'
 logo = '''
   _____             __      __    _       
  / ____|            \ \    / /   | |      
@@ -26,6 +26,7 @@ def usage():
     print("-k --keyword            - Get a list of hosts by referencing Shodan according to keywords")
     print("-t --target            - target url")
     print("-s --script            - Matching script")
+    print("-r --urltxt            - get url text name")
     print("Example: python main.py --script=thinkphp* --keyword=thinkphp/5")
     print("Example: python main.py --script=thinkphp* -t http://192.168.0.1:8080")
 
@@ -72,13 +73,24 @@ def run(keyword):
         t.join()
 
 
+def txt(urktxt):
+    with open(urltxt,"r") as f:
+        url = f.readlines()
+    for i in range(len(url)):
+        k = 'http://'+url[i].strip()
+        t = threading.Thread(target=exp, args=(k,))
+        t.start()
+        t.join()
+
 def main():
     global keyword
     global target
-    
+    global urltxt
+
     keyword = ''
     target = ''
     script = ''
+    urltxt = ''
     
     getnamescript()
     
@@ -86,10 +98,10 @@ def main():
         usage()
     
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "hk:t:s:",["help","keyword=","target=","script="])
+        opts, args = getopt.getopt(sys.argv[1:], "hk:t:s:r:",["help","keyword=","target=","script=","urltxt="])
     except getopt.GetoptError as err:
         print(str(err))
-        #usage()
+        usage()
 
     for o, a in opts:
         if o in ("-h", "--help"):
@@ -100,6 +112,8 @@ def main():
             keyword = a
         if o in ("-t", "--target"):
             target = a
+        if o in ("-r", "--urltxt"):
+            urltxt = a
     
     if script:
         deal(script)
@@ -107,6 +121,8 @@ def main():
         run(keyword)
     if target:
         exp(target)
+    if urltxt:
+        txt(urltxt)
 
 if __name__ == "__main__":
     main()
